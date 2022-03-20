@@ -627,7 +627,7 @@ class SimpleJsonRpcClient(object):
         (line, data) = data.split('\n', 1)
       else:
         chunk = self._socket.recv(1024)
-        data += chunk
+        data += str(chunk)
         continue
 
       log('JSON-RPC Server > ' + line, LEVEL_PROTOCOL)
@@ -854,10 +854,10 @@ class Miner(SimpleJsonRpcClient):
       prev_btc_price = new_btc
       prev_ltc_price = new_ltc
       if (inference == id):
-        print('{id} miner mining {id}')
+        print(id+' miner mining '+id)
         time.sleep(10)
       else:
-        print('{id} miner mining paused')
+        print(id + ' miner mining paused')
         time.sleep(20)
 
 
