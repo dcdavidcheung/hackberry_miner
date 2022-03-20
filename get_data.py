@@ -1,5 +1,5 @@
-import sys
-sys.path[-1] = "/usr/local/lib/python3.9/site-packages"
+# import sys
+# sys.path[-1] = "/usr/local/lib/python3.9/site-packages"
 # print(sys.path)
 
 # Python library packages weird on my laptop
