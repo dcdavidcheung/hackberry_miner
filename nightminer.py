@@ -957,8 +957,8 @@ if __name__ == '__main__':
   # Was there an issue? Show the help screen and exit.
   if message:
     parser.print_help()
-    print
-    print message
+    # print
+    print(message)
     sys.exit(1)
 
   # Set the logging level
