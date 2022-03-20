@@ -54,9 +54,6 @@ def get_frame(label):
     for entry in past:
         opens.append(entry[1])
         closes.append(entry[4])
-    # df = pd.DataFrame(past, columns=['dateTime', 'open', 'high', 'low', 'close', 'volume', 
-    #                                  'closeTime', 'quoteAssetVolume', 'numberOfTrades', 
-    #                                  'takerBuyBaseVol', 'takerBuyQuoteVol', 'ignore'])
     return (opens, closes)
 
 def get_history(filename):
