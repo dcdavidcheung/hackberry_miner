@@ -1,10 +1,3 @@
-# import sys
-# sys.path[-1] = "/usr/local/lib/python3.9/site-packages"
-# print(sys.path)
-
-# Python library packages weird on my laptop
-import pandas as pd
-
 # Binance API
 from binance import Client
 api_key = 'CSEUGkub6mSk4HrqUMc3M16gmnIDA9ENZgN0INKzgolqTURxZZ7bfaMCgyBFo10I'
@@ -14,9 +7,9 @@ client.API_URL = 'https://testnet.binance.vision/api'
 
 # Get Data from Binance API
 btc_price = client.get_symbol_ticker(symbol="BTCUSDT")
-eth_price = client.get_symbol_ticker(symbol="ETHUSDT")
+ltc_price = client.get_symbol_ticker(symbol="LTCUSDT")
 btc_tick = client.get_ticker(symbol="BTCUSDT")
-eth_tick = client.get_ticker(symbol="ETHUSDT")
+ltc_tick = client.get_ticker(symbol="LTCUSDT")
 
 # price_change_btc price_change_eth coin_to_mine
 # up down btc
@@ -33,26 +26,38 @@ def get_prices():
 
     # Get Data from Binance API
     btc_price = client.get_symbol_ticker(symbol="BTCUSDT")
-    eth_price = client.get_symbol_ticker(symbol="ETHUSDT")
-    return btc_price, eth_price
+    ltc_price = client.get_symbol_ticker(symbol="LTCUSDT")
+    return btc_price, ltc_price
 
 def price_diff(hist):
-    price_change = hist['open'].astype('float') - hist['close'].astype('float')
-    return price_change.gt(0.0)
+    ret = []
+    for i in range(len(hist[0])):
+        ret.append(float(hist[0][i])-float(hist[1][i]) >= 0.0)
+    return ret
 
 def price_percent_diff(hist):
-    price_percent = (hist['open'].astype('float') - hist['close'].astype('float')) / hist['open'].astype('float')
-    return price_percent
+    ret = []
+    for i in range(len(hist[0])):
+        ret.append((float(hist[0][i])-float(hist[1][i])) / float(hist[0][i]))
+    return ret
 
 
 # Historical Data to train
 def get_frame(label):
     timestamp = client._get_earliest_valid_timestamp(label, '1d')
     past = client.get_historical_klines(label, "1m", start_str=timestamp, limit=500)
-    df = pd.DataFrame(past, columns=['dateTime', 'open', 'high', 'low', 'close', 'volume', 
-                                     'closeTime', 'quoteAssetVolume', 'numberOfTrades', 
-                                     'takerBuyBaseVol', 'takerBuyQuoteVol', 'ignore'])
-    return df
+    # Results will be of attribute ['dateTime', 'open', 'high', 'low', 'close', 'volume', 
+    #                                  'closeTime', 'quoteAssetVolume', 'numberOfTrades', 
+    #                                  'takerBuyBaseVol', 'takerBuyQuoteVol', 'ignore']
+    opens = []
+    closes = []
+    for entry in past:
+        opens.append(entry[1])
+        closes.append(entry[4])
+    # df = pd.DataFrame(past, columns=['dateTime', 'open', 'high', 'low', 'close', 'volume', 
+    #                                  'closeTime', 'quoteAssetVolume', 'numberOfTrades', 
+    #                                  'takerBuyBaseVol', 'takerBuyQuoteVol', 'ignore'])
+    return (opens, closes)
 
 def get_history(filename):
     btc = get_frame("BTCUSDT")
