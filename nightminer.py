@@ -672,6 +672,7 @@ class SimpleJsonRpcClient(object):
       self._socket.send(bytes(message + '\n', 'utf-8'))
 
     log('JSON-RPC Server < ' + message, LEVEL_PROTOCOL)
+    print(message)
 
     return request
 
