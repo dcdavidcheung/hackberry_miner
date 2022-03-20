@@ -669,7 +669,7 @@ class SimpleJsonRpcClient(object):
     with self._lock:
       self._requests[self._message_id] = request
       self._message_id += 1
-      self._socket.send(message + '\n')
+      self._socket.send(bytes(message + '\n', 'utf-8'))
 
     log('JSON-RPC Server < ' + message, LEVEL_PROTOCOL)
 
