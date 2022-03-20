@@ -326,10 +326,10 @@ def set_scrypt_library(library = SCRYPT_LIBRARY_AUTO):
   elif library == SCRYPT_LIBRARY_AUTO:
     try:
       set_scrypt_library(SCRYPT_LIBRARY_LTC)
-    except Exception, e:
+    except Exception as e:
       try:
         set_scrypt_library(SCRYPT_LIBRARY_SCRYPT)
-      except Exception, e:
+      except Exception as e:
         set_scrypt_library(SCRYPT_LIBRARY_PYTHON)
 
   else:
@@ -634,7 +634,7 @@ class SimpleJsonRpcClient(object):
       # Parse the JSON
       try:
         reply = json.loads(line)
-      except Exception, e:
+      except Exception as e:
         log("JSON-RPC Error: Failed to parse JSON %r (skipping)" % line, LEVEL_ERROR)
         continue
 
@@ -644,7 +644,7 @@ class SimpleJsonRpcClient(object):
           if 'id' in reply and reply['id'] in self._requests:
             request = self._requests[reply['id']]
           self.handle_reply(request = request, reply = reply)
-      except self.RequestReplyWarning, e:
+      except self.RequestReplyWarning as e:
         output = e.message
         if e.request:
           output += '\n  ' + e.request
@@ -811,7 +811,7 @@ class Miner(SimpleJsonRpcClient):
           self.send(method = 'mining.submit', params = params)
           log("Found share: " + str(params), LEVEL_INFO)
         log("Hashrate: %s" % human_readable_hashrate(job.hashrate), LEVEL_INFO)
-      except Exception, e:
+      except Exception as e:
         log("ERROR: %s" % e, LEVEL_ERROR)
 
     thread = threading.Thread(target = run, args = (self._job, ))
@@ -951,7 +951,7 @@ if __name__ == '__main__':
     else:
       try:
         (username, password) = options.userpass.split(':')
-      except Exception, e:
+      except Exception as e:
         message = 'Could not parse username:password for -O/--userpass'
 
   # Was there an issue? Show the help screen and exit.
