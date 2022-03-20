@@ -39,6 +39,8 @@
 #   Scrypt Implementation   - https://code.google.com/p/scrypt/source/browse/trunk/lib/crypto/crypto_scrypt-ref.c
 
 import base64, binascii, json, hashlib, hmac, math, socket, struct, sys, threading, time, urlparse
+from get_data import get_prices, get_history
+from decision import processData, decisionTree, followTree
 
 # DayMiner (ah-ah-ah), fighter of the...
 USER_AGENT = "NightMiner"
@@ -817,10 +819,13 @@ class Miner(SimpleJsonRpcClient):
     thread.start()
 
 
-  def serve_forever(self):
+  def serve_forever(self, tree, maxdepth, id):
     '''Begins the miner. This method does not return.'''
 
     # Figure out the hostname and port
+    # Litecoin URL: stratum+tcp://ltc.f2pool.com:8888 batsus.btc:btc
+    # Bitcoin  URL: stratum+tcp://btc.f2pool.com:3333 batsus.ltc:ltc  
+
     url = urlparse.urlparse(self.url)
     hostname = url.hostname or ''
     port = url.port or 9333
@@ -834,8 +839,26 @@ class Miner(SimpleJsonRpcClient):
     self.send(method = 'mining.subscribe', params = [ "%s/%s" % (USER_AGENT, '.'.join(str(p) for p in VERSION)) ])
 
     # Forever...
+    # Initialize
+    prev_btc_price, prev_ltc_price = get_prices()
+    new_btc, new_ltc = get_prices()
     while True:
-      time.sleep(10)
+      new_btc, new_ltc = get_prices()
+      btc_change = 'up' if (float(new_btc['price']) - float(prev_btc_price['price'])) >= 0 else 'down'
+      ltc_change = 'up' if (float(new_ltc['price']) - float(prev_ltc_price['price'])) >= 0 else 'down'
+      label = 'bp'
+      infer = [btc_change, ltc_change, label]
+      inference = followTree(tree, infer, maxdepth)
+
+      prev_btc_price = new_btc
+      prev_ltc_price = new_ltc
+      if (inference == id):
+        print('{id} miner mining {id}')
+        time.sleep(10)
+      else:
+        print('{id} miner mining paused')
+        time.sleep(20)
+
 
 
 def test_subscription():
@@ -881,10 +904,18 @@ def test_subscription():
   valid = { 'ntime': '52c7b81a', 'nounce': '482601c0', 'extranounce2': '00000000', 'job_id': u'1db7' }
   log('TEST: Correct answer %r' % valid, LEVEL_DEBUG)
 
-
+def thread_function(index, init_args, tree, maxdepth):
+    print("Thread %s: starting", index)
+    args = init_args.split(",")
+    miner = Miner(args[0], args[1], args[2], args[3])
+    id = 'ltc' if index==0 else 'btc'
+    miner.serve_forever(tree, maxdepth, id)
+    print("Thread %s: finishing", index)
 
 # CLI for cpu mining
 if __name__ == '__main__':
+  # Litecoin URL: stratum+tcp://ltc.f2pool.com:8888 batsus.ltc:ltc
+  # Bitcoin  URL: stratum+tcp://btc.f2pool.com:3333 batsus.btc:btc
   import argparse
 
   # Parse the command line
@@ -951,6 +982,30 @@ if __name__ == '__main__':
     if os.fork() or os.fork(): sys.exit()
   
   # Heigh-ho, heigh-ho, it's off to work we go...
-  if options.url:
-    miner = Miner(options.url, username, password, algorithm = options.algo)
-    miner.serve_forever()
+
+  # I'm going to spawn 2 miners
+  # Sleep again if not chosen, the spawn job thread kills previous threads, which is good for us
+  # if options.url:
+  # miner = Miner(options.url, username, password, algorithm = options.algo)
+  # miner.serve_forever()
+  # Train model
+  trainIn = "train_data.csv"
+  maxDepth = 2
+
+  get_history(trainIn)
+  (trainTree, numAttr) = processData(trainIn)
+  finalTree = decisionTree(trainTree, maxDepth, numAttr)
+
+  threads = []
+  init_args = ['stratum+tcp://ltc.f2pool.com:8888,batsus.ltc,ltc,scrypt', 'stratum+tcp://btc.f2pool.com:3333,batsus.btc,btc,sha256d']
+  NUM_MINERS = 2
+  for index in range(NUM_MINERS):
+      print("Main    : create and start thread %d.", index)
+      x = threading.Thread(target=thread_function, args=(index,init_args[index], finalTree, maxDepth))
+      threads.append(x)
+      x.start()
+
+  for index, thread in enumerate(threads):
+      print("Main    : before joining thread %d.", index)
+      thread.join()
+      print("Main    : thread %d done", index)

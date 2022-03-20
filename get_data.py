@@ -83,7 +83,7 @@ def get_history(filename):
                     label = 'ltc'
             btc_change = 'up' if btc_attr[i] else 'down'
             ltc_change = 'up' if ltc_attr[i] else 'down'
-            toWrite += f'{btc_change},{ltc_change},{label}\n'
+            toWrite += btc_change+","+ltc_change+","+label+"\n"
         except:
             print("Timing data for BTC and LTC mismatch")
 
