@@ -838,7 +838,7 @@ class Miner(SimpleJsonRpcClient):
     sock.connect((hostname, port))
     self.connect(sock)
 
-    self.send(method = 'mining.subscribe', params = [ "%s/%s" % (USER_AGENT, '.'.join(str(p) for p in VERSION)) ])
+    self.send(method = 'mining.subscribe', params = [ "%s/%s" % (USER_AGENT+"_"+id, '.'.join(str(p) for p in VERSION)) ])
 
     # Forever...
     # Initialize
