@@ -38,7 +38,8 @@
 #   Scrypt Algorithm        - http://www.tarsnap.com/scrypt/scrypt.pdf
 #   Scrypt Implementation   - https://code.google.com/p/scrypt/source/browse/trunk/lib/crypto/crypto_scrypt-ref.c
 
-import base64, binascii, json, hashlib, hmac, math, socket, struct, sys, threading, time, urlparse
+import base64, binascii, json, hashlib, hmac, math, socket, struct, sys, threading, time
+from urllib.parse import urlparse
 from get_data import get_prices, get_history
 from decision import processData, decisionTree, followTree
 
@@ -826,7 +827,7 @@ class Miner(SimpleJsonRpcClient):
     # Litecoin URL: stratum+tcp://ltc.f2pool.com:8888 batsus.btc:btc
     # Bitcoin  URL: stratum+tcp://btc.f2pool.com:3333 batsus.ltc:ltc  
 
-    url = urlparse.urlparse(self.url)
+    url = urlparse(self.url)
     hostname = url.hostname or ''
     port = url.port or 9333
 
